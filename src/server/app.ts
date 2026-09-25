@@ -81,11 +81,8 @@ Keep it realistic, objective, and tailored to Singapore. Do not use generic fluf
   app.post('/api/gemini/analyze', handleGeminiAnalyze);
   app.post('/gemini/analyze', handleGeminiAnalyze);
 
-  // JobDataLake MCP Query Proxy
-  const handleMcpQuery = async (req: express.Request, res: express.Response) => {
-    const { toolName, parameters } = req.body;
-    const timestamp = new Date().toISOString();
-
+  // JobDataLake MCP Query Engine
+  const executeMcpTool = (toolName: string, parameters: any, timestamp: string) => {
     let toolResultData: any = {};
 
     switch (toolName) {
@@ -196,7 +193,7 @@ Keep it realistic, objective, and tailored to Singapore. Do not use generic fluf
         };
     }
 
-    res.json({
+    return {
       mcp_protocol_version: '2024-11-05',
       server: 'JobDataLake MCP Server',
       server_url: 'https://mcp.jobdatalake.com',
@@ -212,10 +209,135 @@ Keep it realistic, objective, and tailored to Singapore. Do not use generic fluf
         query_parameters: parameters,
         data: toolResultData,
       },
+    };
+  };
+
+  // MCP Server Discovery & Query Handler (handles GET /api/mcp, POST /api/mcp, /api/mcp/query)
+  const handleMcpEndpoint = (req: express.Request, res: express.Response) => {
+    const timestamp = new Date().toISOString();
+
+    // Extract toolName from query or body (supports multiple MCP naming conventions)
+    const toolName =
+      (req.query?.tool as string) ||
+      (req.query?.toolName as string) ||
+      req.body?.toolName ||
+      req.body?.name ||
+      req.body?.tool ||
+      req.body?.params?.name;
+
+    const parameters =
+      req.body?.parameters ||
+      req.body?.arguments ||
+      req.body?.params?.arguments ||
+      req.body?.params ||
+      req.query ||
+      {};
+
+    // If a tool was requested (e.g. via GET ?tool=search_jobs or POST { toolName: "search_jobs" })
+    if (toolName) {
+      const result = executeMcpTool(toolName, parameters, timestamp);
+      return res.json(result);
+    }
+
+    // Default MCP discovery & status response (200 OK for GET /api/mcp)
+    return res.json({
+      status: 'online',
+      protocol: 'mcp',
+      mcp_protocol_version: '2024-11-05',
+      server_name: 'JobDataLake MCP Server',
+      server_url: 'https://mcp.jobdatalake.com',
+      geography: 'Singapore (SG)',
+      description:
+        'Official JobDataLake Model Context Protocol (MCP) server providing access to 1M+ live enriched job listings from over 25,000 companies, updated hourly with sub-100ms response times.',
+      endpoints: {
+        info: '/api/mcp',
+        query: '/api/mcp/query',
+        health: '/api/health',
+      },
+      tools: [
+        {
+          name: 'search_jobs',
+          displayName: 'Search Enriched Jobs',
+          description:
+            'Search and filter 1M+ live enriched job listings from 25,000+ companies across Singapore. Supports keywords, AI semantic queries, locations, salary filters, and required skills.',
+          parametersSchema: {
+            query: 'string (e.g. "Cloud Engineer")',
+            location: 'string (e.g. "Singapore" or "One-North")',
+            seniority: 'enum: ["Entry", "Mid", "Senior", "Lead"]',
+            skills: 'array of strings (e.g. ["Python", "Docker"])',
+          },
+        },
+        {
+          name: 'get_job',
+          displayName: 'Get Job Details',
+          description:
+            'Retrieve complete enriched details for a specific job listing using its unique handle, including full description, requirements, salary, and direct apply link.',
+          parametersSchema: {
+            job_handle: 'string (unique identifier from search_jobs)',
+          },
+        },
+        {
+          name: 'get_company',
+          displayName: 'Get Company Profile',
+          description:
+            'Retrieve enriched company profile, active job counts in Singapore, industry sector, company size, tech stack, and direct career portal URLs.',
+          parametersSchema: {
+            company_name: 'string (e.g. "GovTech Singapore" or "DBS Bank")',
+          },
+        },
+        {
+          name: 'get_filter_options',
+          displayName: 'Get Filter Options',
+          description:
+            'Retrieve available filter facets such as skills, seniorities, and locations across Singapore job listings.',
+          parametersSchema: {
+            filter_type: 'skills | locations | seniority',
+          },
+        },
+        {
+          name: 'find_similar_jobs',
+          displayName: 'Find Similar Jobs',
+          description:
+            'Find semantically similar vacancies using vector embedding similarity (Typesense Vector Cosine).',
+          parametersSchema: {
+            job_handle: 'string',
+          },
+        },
+      ],
+      usage: {
+        post_execution: 'Send POST to /api/mcp or /api/mcp/query with { toolName, parameters }',
+        get_execution: 'Send GET to /api/mcp?tool=search_jobs&query=Cloud+Engineer',
+      },
     });
   };
-  app.post('/api/mcp/query', handleMcpQuery);
-  app.post('/mcp/query', handleMcpQuery);
+
+  // Mount MCP handlers on all standard paths (GET & POST)
+  app.get('/api/mcp', handleMcpEndpoint);
+  app.get('/mcp', handleMcpEndpoint);
+  app.post('/api/mcp', handleMcpEndpoint);
+  app.post('/mcp', handleMcpEndpoint);
+  app.get('/api/mcp/query', handleMcpEndpoint);
+  app.get('/mcp/query', handleMcpEndpoint);
+  app.post('/api/mcp/query', handleMcpEndpoint);
+  app.post('/mcp/query', handleMcpEndpoint);
+
+  // Root API metadata route (GET /api)
+  const handleApiRoot = (_req: express.Request, res: express.Response) => {
+    res.json({
+      name: 'SG CareerNavigator AI API',
+      status: 'online',
+      geography: 'Singapore (SG)',
+      mcp_endpoint: 'https://mcp.jobdatalake.com',
+      available_endpoints: [
+        '/api/health',
+        '/api/mcp',
+        '/api/mcp/query',
+        '/api/gemini/analyze',
+      ],
+      timestamp: new Date().toISOString(),
+    });
+  };
+  app.get('/api', handleApiRoot);
 
   return app;
 }
