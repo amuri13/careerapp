@@ -13,13 +13,12 @@ import { JobExplorerScreen } from './components/screens/JobExplorerScreen';
 import { EmployeeReviewsScreen } from './components/screens/EmployeeReviewsScreen';
 import { ActionPlanScreen } from './components/screens/ActionPlanScreen';
 import { McpHubScreen } from './components/screens/McpHubScreen';
-import { PRESET_PROFILES, CAREER_OPTIONS_DB } from './data/singaporeLmiData';
-import { StudentProfile, CareerOption } from './types';
-import { Compass, ExternalLink, ShieldCheck } from 'lucide-react';
+import { CAREER_OPTIONS_DB } from './data/singaporeLmiData';
+import { CareerOption } from './types';
+import { Compass, ExternalLink, ShieldCheck, Search } from 'lucide-react';
 
 export default function App() {
-  const [activeScreen, setActiveScreen] = useState<ScreenId>('navigator');
-  const [currentProfile, setCurrentProfile] = useState<StudentProfile>(PRESET_PROFILES[0]);
+  const [activeScreen, setActiveScreen] = useState<ScreenId>('job-explorer');
   const [selectedCareer, setSelectedCareer] = useState<CareerOption>(CAREER_OPTIONS_DB[0]);
   const [targetReviewCompany, setTargetReviewCompany] = useState<string | undefined>(undefined);
 
@@ -32,8 +31,19 @@ export default function App() {
     setActiveScreen('deep-dive');
   };
 
-  const handleNavigateToPathways = (career: CareerOption) => {
-    setSelectedCareer(career);
+  const handleNavigateToPathways = (careerOrTitle?: CareerOption | string) => {
+    if (typeof careerOrTitle === 'object') {
+      setSelectedCareer(careerOrTitle);
+    } else if (typeof careerOrTitle === 'string') {
+      const found = CAREER_OPTIONS_DB.find(
+        (c) =>
+          c.title.toLowerCase().includes(careerOrTitle.toLowerCase()) ||
+          careerOrTitle.toLowerCase().includes(c.title.toLowerCase())
+      );
+      if (found) {
+        setSelectedCareer(found);
+      }
+    }
     setActiveScreen('pathways');
   };
 
@@ -50,22 +60,19 @@ export default function App() {
       <Navbar
         activeScreen={activeScreen}
         onSelectScreen={setActiveScreen}
-        currentProfile={currentProfile}
-        allProfiles={PRESET_PROFILES}
-        onSelectProfile={setCurrentProfile}
       />
 
       {/* Main Content Area */}
       <main className="flex-1 pb-16">
-        {activeScreen === 'market-insights' && (
-          <MarketInsightsScreen
-            onNavigateToNavigator={() => setActiveScreen('navigator')}
+        {activeScreen === 'job-explorer' && (
+          <JobExplorerScreen
+            onNavigateToReviews={handleNavigateToReviews}
+            onNavigateToPathways={handleNavigateToPathways}
           />
         )}
 
         {activeScreen === 'navigator' && (
           <NavigatorScreen
-            currentProfile={currentProfile}
             onSelectCareer={handleSelectCareer}
             onNavigateToDeepDive={handleNavigateToDeepDive}
             onNavigateToPathways={handleNavigateToPathways}
@@ -73,10 +80,15 @@ export default function App() {
           />
         )}
 
+        {activeScreen === 'market-insights' && (
+          <MarketInsightsScreen
+            onNavigateToNavigator={() => setActiveScreen('navigator')}
+          />
+        )}
+
         {activeScreen === 'deep-dive' && (
           <DeepDiveScreen
             career={selectedCareer}
-            profile={currentProfile}
             onBackToNavigator={() => setActiveScreen('navigator')}
             onNavigateToPathways={handleNavigateToPathways}
             onNavigateToJobExplorer={() => setActiveScreen('job-explorer')}
@@ -87,16 +99,8 @@ export default function App() {
         {activeScreen === 'pathways' && (
           <PathwaysScreen
             career={selectedCareer}
-            profile={currentProfile}
             onNavigateToActionPlan={() => setActiveScreen('action-plan')}
             onNavigateToJobs={() => setActiveScreen('job-explorer')}
-          />
-        )}
-
-        {activeScreen === 'job-explorer' && (
-          <JobExplorerScreen
-            profile={currentProfile}
-            onNavigateToReviews={handleNavigateToReviews}
           />
         )}
 
@@ -109,7 +113,6 @@ export default function App() {
 
         {activeScreen === 'action-plan' && (
           <ActionPlanScreen
-            profile={currentProfile}
             selectedCareer={selectedCareer}
             onNavigateToJobs={() => setActiveScreen('job-explorer')}
           />
@@ -125,18 +128,18 @@ export default function App() {
             {/* Col 1 */}
             <div className="space-y-2 md:col-span-2">
               <div className="flex items-center gap-2 text-slate-900 font-bold">
-                <Compass className="w-4 h-4 text-blue-600" />
-                <span>SG CareerNavigator AI</span>
+                <Search className="w-4 h-4 text-blue-600" />
+                <span>SG CareerNavigator</span>
                 <span className="px-1.5 py-0.5 rounded text-[10px] bg-blue-100 text-blue-800 font-semibold">
-                  JobDataLake MCP Edition
+                  JobDataLake MCP Powered
                 </span>
               </div>
               <p className="text-slate-500 leading-relaxed max-w-lg">
-                Empowering Singapore students and graduates through objective labour-market evidence, official MOM MRSD benchmarks, SkillsFuture Singapore competency frameworks, and JobDataLake MCP data architecture (https://mcp.jobdatalake.com).
+                Direct job title and skills search engine grounded in real-time JobDataLake MCP data feeds (https://mcp.jobdatalake.com), official Singapore MOM MRSD salary percentiles, and SkillsFuture Singapore competency frameworks.
               </p>
               <div className="flex items-center gap-1.5 text-emerald-700 font-medium pt-1">
                 <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                <span>Evidence Grounded • Real-time Hourly Scraping • Vector Similarity</span>
+                <span>Real-Time Hourly Ingestion • 25,000+ Companies • Vector Semantic Matching</span>
               </div>
             </div>
 
@@ -148,9 +151,9 @@ export default function App() {
               <ul className="space-y-1 text-slate-500">
                 <li>SSOC 2020 (Occupations)</li>
                 <li>SSIC 2020 (Industries)</li>
-                <li>SSEC (Education Qualifications)</li>
-                <li>SkillsFuture SG Skills Framework</li>
+                <li>SkillsFuture SG Competencies</li>
                 <li>MOM Labour Market Statistics</li>
+                <li>SSEC Educational Classifications</li>
               </ul>
             </div>
 
@@ -170,7 +173,7 @@ export default function App() {
           </div>
 
           <div className="mt-8 pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-400">
-            <p>© 2026 SG CareerNavigator AI • Powered by https://mcp.jobdatalake.com</p>
+            <p>© 2026 SG CareerNavigator • Powered by https://mcp.jobdatalake.com</p>
             <div className="flex items-center gap-4">
               <a
                 href="https://mcp.jobdatalake.com"

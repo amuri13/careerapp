@@ -1,6 +1,6 @@
 {
   "name": "SG CareerNavigator AI",
-    "description": "Evidence-based Career Navigator & Labour Market Intelligence powered by JobDataLake MCP for Singapore Tertiary Students and Jobseekers.",
+  "description": "Singapore Job & Skills Search Engine & Labour Market Intelligence powered by JobDataLake MCP and MOM MRSD benchmarks. Search freely by job title or technical skills.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

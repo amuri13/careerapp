@@ -16,7 +16,7 @@ import { requestAiCareerAnalysis } from '../services/api';
 
 interface ExplainModalProps {
   career: CareerOption;
-  profile: StudentProfile;
+  profile?: StudentProfile;
   isOpen: boolean;
   onClose: () => void;
 }
@@ -41,7 +41,7 @@ export const ExplainModal: React.FC<ExplainModalProps> = ({
       const res = await requestAiCareerAnalysis(
         profile,
         career.title,
-        `Deep dive explanation for candidate suitability in Singapore`
+        `Deep dive explanation for ${career.title} market demand and skills suitability in Singapore`
       );
       setLiveAiResult(res.analysis);
       setAiSource(res.source);
@@ -64,7 +64,7 @@ export const ExplainModal: React.FC<ExplainModalProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-lg font-bold text-slate-900">
-                  Explain My Recommendation
+                  Career Evidence & Recommendation Rationale
                 </h3>
                 <span className="px-2 py-0.5 rounded text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200">
                   Evidence-Grounded LMI
@@ -72,7 +72,7 @@ export const ExplainModal: React.FC<ExplainModalProps> = ({
               </div>
               <p className="text-xs text-slate-500">
                 Transparent verification of why{' '}
-                <strong className="text-slate-800">{career.title}</strong> was surfaced for {profile.name}
+                <strong className="text-slate-800">{career.title}</strong> is recommended in Singapore
               </p>
             </div>
           </div>

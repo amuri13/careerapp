@@ -6,12 +6,11 @@ import {
   ChevronRight,
   CheckCircle2,
 } from 'lucide-react';
-import { CareerOption, StudentProfile, CareerPathwayNode } from '../../types';
+import { CareerOption, CareerPathwayNode } from '../../types';
 import { CAREER_PATHWAYS_DATA } from '../../data/singaporeLmiData';
 
 interface PathwaysScreenProps {
   career: CareerOption;
-  profile: StudentProfile;
   onNavigateToActionPlan: () => void;
   onNavigateToJobs?: () => void;
 }
@@ -19,6 +18,7 @@ interface PathwaysScreenProps {
 export const PathwaysScreen: React.FC<PathwaysScreenProps> = ({
   career,
   onNavigateToActionPlan,
+  onNavigateToJobs,
 }) => {
   const pathwayNodes: CareerPathwayNode[] =
     CAREER_PATHWAYS_DATA[career.id] || CAREER_PATHWAYS_DATA['career-cloud-ai-engineer'];
@@ -41,11 +41,19 @@ export const PathwaysScreen: React.FC<PathwaysScreenProps> = ({
               Career Trajectory & Unlocks: {career.title}
             </h1>
             <p className="text-sm text-slate-600 max-w-2xl leading-relaxed">
-              Visualize how your current profile bridges into entry roles, mid-level specialization, strategic leadership, or lateral pivots into technical product management in the Singapore economy.
+              Visualize how technical competencies bridge from entry roles into mid-level specialization, strategic leadership, and lateral pivots in the Singapore economy.
             </p>
           </div>
 
           <div className="flex items-center gap-3 shrink-0">
+            {onNavigateToJobs && (
+              <button
+                onClick={onNavigateToJobs}
+                className="px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all"
+              >
+                Search Related Jobs
+              </button>
+            )}
             <button
               onClick={onNavigateToActionPlan}
               className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-all"

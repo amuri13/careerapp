@@ -10,11 +10,10 @@ import {
   Layers,
   ArrowRight,
 } from 'lucide-react';
-import { JobOpportunity, StudentProfile } from '../types';
+import { JobOpportunity } from '../types';
 
 interface JobDataLakeJobModalProps {
   job: JobOpportunity;
-  profile: StudentProfile;
   isOpen: boolean;
   onClose: () => void;
   onSelectSimilarJob?: (job: JobOpportunity) => void;
@@ -22,7 +21,6 @@ interface JobDataLakeJobModalProps {
 
 export const JobDataLakeJobModal: React.FC<JobDataLakeJobModalProps> = ({
   job,
-  profile,
   isOpen,
   onClose,
 }) => {

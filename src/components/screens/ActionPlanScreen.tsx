@@ -12,22 +12,22 @@ import {
   ChevronRight,
   Filter,
 } from 'lucide-react';
-import { ActionPlanItem, StudentProfile, CareerOption } from '../../types';
+import { ActionPlanItem, CareerOption } from '../../types';
 import { DEFAULT_90_DAY_ACTION_PLAN } from '../../data/singaporeLmiData';
 
 interface ActionPlanScreenProps {
-  profile: StudentProfile;
   selectedCareer?: CareerOption;
   onNavigateToJobs: () => void;
 }
 
 export const ActionPlanScreen: React.FC<ActionPlanScreenProps> = ({
-  profile,
   selectedCareer,
   onNavigateToJobs,
 }) => {
+  const planKey = `sg_career_plan_${selectedCareer?.id || 'general'}`;
+
   const [planItems, setPlanItems] = useState<ActionPlanItem[]>(() => {
-    const saved = localStorage.getItem(`sg_career_plan_${profile.id}`);
+    const saved = localStorage.getItem(planKey);
     if (saved) {
       try {
         return JSON.parse(saved);
@@ -46,7 +46,7 @@ export const ActionPlanScreen: React.FC<ActionPlanScreenProps> = ({
       item.id === id ? { ...item, completed: !item.completed } : item
     );
     setPlanItems(updated);
-    localStorage.setItem(`sg_career_plan_${profile.id}`, JSON.stringify(updated));
+    localStorage.setItem(planKey, JSON.stringify(updated));
   };
 
   const completedCount = planItems.filter((i) => i.completed).length;
@@ -59,7 +59,7 @@ export const ActionPlanScreen: React.FC<ActionPlanScreenProps> = ({
 
   const handleExportMarkdown = () => {
     const lines = [
-      `# 90-Day Career Readiness Plan for ${profile.name}`,
+      `# 90-Day Career Readiness & Skill Acquisition Plan`,
       `Target Role: ${selectedCareer?.title || 'Cloud & AI Solutions Engineer'} (Singapore)`,
       `Generated: ${new Date().toLocaleDateString()}`,
       `Progress: ${completedCount}/${planItems.length} (${progressPercent}% completed)`,
@@ -70,10 +70,11 @@ export const ActionPlanScreen: React.FC<ActionPlanScreenProps> = ({
       ),
     ];
 
+    const blob = new Blob([lines.join('\n')], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
     const element = document.createElement('a');
-    const file = new Blob([lines.join('\n')], { type: 'text/markdown' });
-    element.href = URL.createObjectURL(file);
-    element.download = `${profile.name.replace(/\s+/g, '_')}_90_Day_Plan.md`;
+    element.href = url;
+    element.download = `${(selectedCareer?.title || 'Career').replace(/\s+/g, '_')}_90_Day_Plan.md`;
     document.body.appendChild(element);
     element.click();
     document.body.removeChild(element);
@@ -81,16 +82,16 @@ export const ActionPlanScreen: React.FC<ActionPlanScreenProps> = ({
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'Learning / Certification':
+      case 'Certification':
         return <BookOpen className="w-4 h-4 text-blue-600" />;
       case 'Portfolio Project':
-        return <Code className="w-4 h-4 text-purple-600" />;
-      case 'Industry & Networking':
-        return <Users className="w-4 h-4 text-emerald-600" />;
-      case 'Application Strategy':
-        return <Send className="w-4 h-4 text-indigo-600" />;
+        return <Code className="w-4 h-4 text-emerald-600" />;
+      case 'Networking':
+        return <Users className="w-4 h-4 text-indigo-600" />;
+      case 'Application':
+        return <Send className="w-4 h-4 text-purple-600" />;
       default:
-        return <CalendarCheck className="w-4 h-4 text-slate-600" />;
+        return <Sparkles className="w-4 h-4 text-slate-600" />;
     }
   };
 
@@ -102,156 +103,144 @@ export const ActionPlanScreen: React.FC<ActionPlanScreenProps> = ({
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold">
               <CalendarCheck className="w-3.5 h-3.5" />
-              <span>Actionable Bridge to Singapore Employment</span>
+              <span>Singapore SkillsFuture & MOM Aligned</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              90-Day Career Execution Plan
+              90-Day Career Readiness Plan: {selectedCareer?.title || 'Cloud Solutions Engineer'}
             </h1>
             <p className="text-sm text-slate-600 max-w-2xl leading-relaxed">
-              Convert your identified skills gaps into practical learning milestones, tangible portfolio artifacts, and high-conversion job applications tailored for {selectedCareer?.title || 'your target career'}.
+              Step-by-step weekly milestones engineered to bridge candidate skill gaps, obtain employer-recognized Singapore credentials, build production portfolio artifacts, and secure interviews via JobDataLake openings.
             </p>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-3 shrink-0">
             <button
               onClick={handleExportMarkdown}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold shadow-xs transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-bold transition-all"
             >
               <Download className="w-4 h-4" />
-              <span>Export as Markdown</span>
+              <span>Export Markdown</span>
             </button>
             <button
               onClick={onNavigateToJobs}
-              className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-colors"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-all"
             >
-              <span>Explore SG Jobs</span>
+              <span>Explore Live Vacancies</span>
               <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
+      </div>
 
-        {/* Progress Bar Container */}
-        <div className="mt-6 pt-6 border-t border-slate-100 space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-bold text-slate-800">
-              Overall Roadmap Completion: {completedCount} of {planItems.length} actions complete
-            </span>
-            <span className="font-extrabold text-blue-700 text-sm">{progressPercent}%</span>
+      {/* Progress Card */}
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 shadow-xs space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-bold text-slate-900">
+              90-Day Execution Trajectory
+            </h2>
+            <p className="text-xs text-slate-500">
+              {completedCount} of {planItems.length} milestones accomplished
+            </p>
           </div>
-          <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-blue-600 transition-all duration-300 rounded-full"
-              style={{ width: `${progressPercent}%` }}
-            />
-          </div>
+          <span className="text-2xl font-black text-blue-700">
+            {progressPercent}%
+          </span>
+        </div>
+
+        {/* Progress Bar */}
+        <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden border border-slate-200">
+          <div
+            className="bg-blue-600 h-full transition-all duration-500 rounded-full"
+            style={{ width: `${progressPercent}%` }}
+          />
         </div>
       </div>
 
       {/* Phase Filter Tabs */}
-      <div className="flex items-center justify-between bg-white p-4 rounded-xl border border-slate-200">
-        <div className="flex items-center gap-2">
-          <Filter className="w-4 h-4 text-slate-400" />
-          <span className="text-xs font-bold text-slate-700">Filter Phase:</span>
-          <div className="flex flex-wrap gap-1.5">
-            {[
-              { id: 'all', label: 'All 90 Days' },
-              { id: 'foundation', label: 'Days 1-30: Foundation' },
-              { id: 'projects', label: 'Days 31-60: Projects' },
-              { id: 'applications', label: 'Days 61-90: Applications' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActivePhaseFilter(tab.id)}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-colors ${
-                  activePhaseFilter === tab.id
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+      <div className="flex items-center gap-2 overflow-x-auto pb-2">
+        <div className="flex items-center gap-1.5 text-xs text-slate-500 mr-2 font-medium">
+          <Filter className="w-3.5 h-3.5" />
+          <span>Phase:</span>
         </div>
-
-        <span className="text-xs text-slate-500">
-          {filteredItems.length} milestones
-        </span>
+        {[
+          { id: 'all', label: 'All 90 Days' },
+          { id: 'Phase 1', label: 'Days 1-30: Foundation' },
+          { id: 'Phase 2', label: 'Days 31-60: Portfolio' },
+          { id: 'Phase 3', label: 'Days 61-90: Pipeline' },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            onClick={() => setActivePhaseFilter(tab.id)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-colors ${
+              activePhaseFilter === tab.id
+                ? 'bg-blue-600 text-white'
+                : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      {/* Plan Items List */}
+      {/* Milestone Checklists */}
       <div className="space-y-4">
         {filteredItems.map((item) => (
           <div
             key={item.id}
             onClick={() => toggleItemCompletion(item.id)}
-            className={`bg-white rounded-2xl border p-5 shadow-xs transition-all cursor-pointer flex items-start gap-4 ${
+            className={`p-5 rounded-2xl border transition-all cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${
               item.completed
-                ? 'border-emerald-300 bg-emerald-50/20'
-                : 'border-slate-200 hover:border-blue-300'
+                ? 'bg-emerald-50/40 border-emerald-200/80 shadow-2xs'
+                : 'bg-white border-slate-200 hover:border-blue-300 shadow-xs'
             }`}
           >
-            {/* Checkbox */}
-            <div className="mt-1 shrink-0">
+            <div className="flex items-start gap-4">
               <div
-                className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all ${
+                className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 mt-0.5 border transition-colors ${
                   item.completed
-                    ? 'bg-emerald-600 text-white'
-                    : 'border-2 border-slate-300 hover:border-blue-500'
+                    ? 'bg-emerald-600 border-emerald-600 text-white'
+                    : 'bg-white border-slate-300 text-transparent'
                 }`}
               >
-                {item.completed && <CheckCircle2 className="w-4 h-4" />}
+                <CheckCircle2 className="w-4 h-4" />
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-bold font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+                    Week {item.week}
+                  </span>
+                  <span className="text-xs text-blue-700 font-semibold">
+                    {item.phase}
+                  </span>
+                  <span className="flex items-center gap-1 text-[11px] text-slate-500 font-medium">
+                    {getCategoryIcon(item.category)}
+                    <span>{item.category}</span>
+                  </span>
+                </div>
+
+                <h3
+                  className={`text-sm font-bold transition-all ${
+                    item.completed ? 'text-slate-400 line-through' : 'text-slate-900'
+                  }`}
+                >
+                  {item.title}
+                </h3>
+                <p className="text-xs text-slate-600 leading-relaxed max-w-3xl">
+                  {item.description}
+                </p>
               </div>
             </div>
 
-            {/* Main Content */}
-            <div className="flex-1 space-y-2">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700">
-                    Week {item.week}
-                  </span>
-                  <h3
-                    className={`text-sm font-bold ${
-                      item.completed ? 'text-slate-500 line-through' : 'text-slate-900'
-                    }`}
-                  >
-                    {item.title}
-                  </h3>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1 text-[11px] text-slate-500">
-                    <Clock className="w-3 h-3" /> {item.estimatedHours} hrs
-                  </span>
-                  <span
-                    className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                      item.priority === 'Essential'
-                        ? 'bg-rose-100 text-rose-800'
-                        : 'bg-blue-100 text-blue-800'
-                    }`}
-                  >
-                    {item.priority}
-                  </span>
-                </div>
-              </div>
-
-              <p className="text-xs text-slate-600 leading-relaxed">
-                {item.description}
-              </p>
-
-              <div className="flex flex-wrap items-center gap-3 text-[11px] pt-1">
-                <span className="flex items-center gap-1 font-semibold text-slate-700">
-                  {getCategoryIcon(item.category)}
-                  {item.category}
-                </span>
-                <span>•</span>
-                <span className="text-blue-700 font-medium">
-                  Resource: {item.providerOrResource}
-                </span>
-                <span>•</span>
-                <span className="text-slate-400">{item.phase.split(':')[0]}</span>
-              </div>
+            <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto text-xs shrink-0 pl-10 sm:pl-0">
+              <span className="font-semibold text-slate-800 text-right">
+                {item.providerOrResource}
+              </span>
+              <span className="flex items-center gap-1 text-slate-400 text-[11px] mt-0.5">
+                <Clock className="w-3 h-3" />
+                <span>~{item.estimatedHours} hrs</span>
+              </span>
             </div>
           </div>
         ))}

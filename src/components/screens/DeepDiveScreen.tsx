@@ -12,12 +12,11 @@ import {
   GitFork,
   ArrowRight,
 } from 'lucide-react';
-import { CareerOption, StudentProfile } from '../../types';
+import { CareerOption } from '../../types';
 import { ExplainModal } from '../ExplainModal';
 
 interface DeepDiveScreenProps {
   career: CareerOption;
-  profile: StudentProfile;
   onBackToNavigator: () => void;
   onNavigateToPathways: (career: CareerOption) => void;
   onNavigateToJobExplorer: () => void;
@@ -26,7 +25,6 @@ interface DeepDiveScreenProps {
 
 export const DeepDiveScreen: React.FC<DeepDiveScreenProps> = ({
   career,
-  profile,
   onBackToNavigator,
   onNavigateToPathways,
   onNavigateToJobExplorer,
@@ -141,9 +139,9 @@ export const DeepDiveScreen: React.FC<DeepDiveScreenProps> = ({
           </div>
 
           <div className="text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-100">
-            <strong>Candidate Alignment: </strong> Your target salary expectation of{' '}
-            <span className="font-bold text-blue-700">SGD ${profile.targetMonthlySalarySGD.toLocaleString()}/mo</span>{' '}
-            is well within the 25th-75th percentile envelope for this occupation in Singapore.
+            <strong>MOM Benchmark Guidance: </strong> The median monthly gross of{' '}
+            <span className="font-bold text-blue-700">SGD ${career.salarySGD.median.toLocaleString()}/mo</span>{' '}
+            provides strong economic returns, with upper-quartile earners reaching SGD ${career.salarySGD.p75.toLocaleString()}/mo in Singapore.
           </div>
         </div>
 
@@ -313,7 +311,6 @@ export const DeepDiveScreen: React.FC<DeepDiveScreenProps> = ({
       {explainOpen && (
         <ExplainModal
           career={career}
-          profile={profile}
           isOpen={explainOpen}
           onClose={() => setExplainOpen(false)}
         />

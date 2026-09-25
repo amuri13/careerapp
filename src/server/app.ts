@@ -1,6 +1,7 @@
 import express from 'express';
 import { GoogleGenAI } from '@google/genai';
 import dotenv from 'dotenv';
+import { LIVE_JOB_POSTINGS } from '../data/singaporeLmiData.ts';
 
 dotenv.config();
 
@@ -86,41 +87,51 @@ Keep it realistic, objective, and tailored to Singapore. Do not use generic fluf
     let toolResultData: any = {};
 
     switch (toolName) {
-      case 'search_jobs':
+      case 'search_jobs': {
+        const query = (parameters?.query || '').toLowerCase();
+        const skill = (parameters?.skill || parameters?.skills || '').toString().toLowerCase();
+        const seniority = parameters?.seniority;
+        const location = (parameters?.location || '').toLowerCase();
+
+        const filtered = LIVE_JOB_POSTINGS.filter((j) => {
+          const matchesQuery =
+            !query ||
+            j.title.toLowerCase().includes(query) ||
+            j.company.toLowerCase().includes(query) ||
+            j.industry.toLowerCase().includes(query);
+
+          const matchesSkill =
+            !skill ||
+            j.matchedSkills.some((s) => s.toLowerCase().includes(skill)) ||
+            (j.missingSkills && j.missingSkills.some((s) => s.toLowerCase().includes(skill)));
+
+          const matchesSeniority = !seniority || seniority === 'all' || j.seniority === seniority;
+          const matchesLocation = !location || j.location.toLowerCase().includes(location);
+
+          return matchesQuery && matchesSkill && matchesSeniority && matchesLocation;
+        });
+
         toolResultData = {
-          total_found: 348,
+          total_found: filtered.length,
           query: parameters?.query || 'Singapore Tech Roles',
           location: parameters?.location || 'Singapore',
-          seniority: parameters?.seniority || 'Entry',
+          seniority: parameters?.seniority || 'All',
           page: 1,
-          results: [
-            {
-              handle: 'govtech-cloud-sol-eng-2026',
-              title: 'Cloud Solutions Engineer (Government Digital Services)',
-              company: 'GovTech Singapore',
-              location: 'One-North (Hive), Singapore',
-              salary_min_sgd: 5200,
-              salary_max_sgd: 6800,
-              seniority: 'Entry',
-              remote: 'Hybrid',
-              apply_url: 'https://careers.tech.gov.sg/jobs/cloud-solutions-engineer',
-              enriched_skills: ['Python', 'Docker', 'FastAPI', 'Kubernetes'],
-            },
-            {
-              handle: 'dbs-grad-ai-platform-2026',
-              title: 'Graduate Associate - AI & Cloud Platform Engineering',
-              company: 'DBS Bank Singapore',
-              location: 'Marina Bay Financial Centre, Singapore',
-              salary_min_sgd: 5400,
-              salary_max_sgd: 6500,
-              seniority: 'Entry',
-              remote: 'Hybrid',
-              apply_url: 'https://www.dbs.com/careers/seed-ai-platform',
-              enriched_skills: ['Python', 'TypeScript', 'SQL', 'Algorithms'],
-            },
-          ],
+          results: filtered.map((j) => ({
+            handle: j.handle || j.id,
+            title: j.title,
+            company: j.company,
+            location: j.location,
+            salary_min_sgd: j.salaryRangeSGD.min,
+            salary_max_sgd: j.salaryRangeSGD.max,
+            seniority: j.seniority || 'Mid',
+            remote: j.workModel,
+            apply_url: j.applyUrl || 'https://mcp.jobdatalake.com',
+            enriched_skills: [...j.matchedSkills, ...(j.missingSkills || [])],
+          })),
         };
         break;
+      }
 
       case 'get_job':
         toolResultData = {
