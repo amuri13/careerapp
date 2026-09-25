@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   Compass,
-  UserCheck,
   TrendingUp,
   Briefcase,
   Layers,
@@ -14,9 +13,8 @@ import {
 import { StudentProfile } from '../types';
 
 export type ScreenId =
-  | 'profile'
-  | 'market-insights'
   | 'navigator'
+  | 'market-insights'
   | 'deep-dive'
   | 'pathways'
   | 'job-explorer'
@@ -42,9 +40,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [profileDropdownOpen, setProfileDropdownOpen] = React.useState(false);
 
   const navItems: { id: ScreenId; label: string; icon: React.ReactNode }[] = [
-    { id: 'profile', label: 'Student Profile', icon: <UserCheck className="w-4 h-4" /> },
-    { id: 'market-insights', label: 'Labour Insights', icon: <TrendingUp className="w-4 h-4" /> },
     { id: 'navigator', label: 'Career Navigator', icon: <Compass className="w-4 h-4" /> },
+    { id: 'market-insights', label: 'Labour Insights', icon: <TrendingUp className="w-4 h-4" /> },
     { id: 'deep-dive', label: 'Career Deep Dive', icon: <Briefcase className="w-4 h-4" /> },
     { id: 'pathways', label: 'Career Pathways', icon: <GitFork className="w-4 h-4" /> },
     { id: 'job-explorer', label: 'Job Explorer (JobDataLake)', icon: <Layers className="w-4 h-4" /> },

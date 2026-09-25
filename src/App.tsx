@@ -5,7 +5,6 @@
 
 import React, { useState } from 'react';
 import { Navbar, ScreenId } from './components/Navbar';
-import { ProfileScreen } from './components/screens/ProfileScreen';
 import { MarketInsightsScreen } from './components/screens/MarketInsightsScreen';
 import { NavigatorScreen } from './components/screens/NavigatorScreen';
 import { DeepDiveScreen } from './components/screens/DeepDiveScreen';
@@ -19,7 +18,7 @@ import { StudentProfile, CareerOption } from './types';
 import { Compass, ExternalLink, ShieldCheck } from 'lucide-react';
 
 export default function App() {
-  const [activeScreen, setActiveScreen] = useState<ScreenId>('profile');
+  const [activeScreen, setActiveScreen] = useState<ScreenId>('navigator');
   const [currentProfile, setCurrentProfile] = useState<StudentProfile>(PRESET_PROFILES[0]);
   const [selectedCareer, setSelectedCareer] = useState<CareerOption>(CAREER_OPTIONS_DB[0]);
   const [targetReviewCompany, setTargetReviewCompany] = useState<string | undefined>(undefined);
@@ -58,16 +57,6 @@ export default function App() {
 
       {/* Main Content Area */}
       <main className="flex-1 pb-16">
-        {activeScreen === 'profile' && (
-          <ProfileScreen
-            currentProfile={currentProfile}
-            allProfiles={PRESET_PROFILES}
-            onSelectProfile={setCurrentProfile}
-            onNavigateToNavigator={() => setActiveScreen('navigator')}
-            onNavigateToMarketInsights={() => setActiveScreen('market-insights')}
-          />
-        )}
-
         {activeScreen === 'market-insights' && (
           <MarketInsightsScreen
             onNavigateToNavigator={() => setActiveScreen('navigator')}
