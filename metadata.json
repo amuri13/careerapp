@@ -1,0 +1,6 @@
+{
+  "name": "SG CareerNavigator AI",
+  "description": "Evidence-based Career Insights, Skills Gap Analysis & Labour Market Intelligence Navigator for Singapore Students.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
